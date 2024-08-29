@@ -16,7 +16,7 @@ export default defineConfig({
       // configure: "[cacheDir]/configure.js",
       // routeBase: "api",
       // dirs: [{ dir: "src/api", route: "", exclude: ["*.txt", ".csv", "data/*.*"] }],
-      // include: ["**/*.js", "**/*.ts"],
+      include: ["**/*.js", "**/*.ts", , "**/*.tsx", "**/*.jsx"],
       // exclude: ["node_modules", ".git"],
       // mapper: { default: "use", GET: "get", ... },
     }),
