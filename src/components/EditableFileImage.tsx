@@ -40,7 +40,8 @@ const EditableFileImage: FC<Props> = ({
     }
   }
 
-  useOnClickOutside(widthWrapper, handleClickOutside)
+  if (typeof document !== 'undefined' || typeof window !== 'undefined')
+    useOnClickOutside(widthWrapper, handleClickOutside)
 
   const handleUpload = () => {
     fileInput?.current?.click()
