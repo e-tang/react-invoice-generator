@@ -1,5 +1,5 @@
 
-import { Invoice, TInvoice } from '../data/types'
+import { Invoice, ProductLine, TInvoice } from '../data/types'
 import { initialInvoice, initialProductLine } from '../data/initialData'
 import { useDebounce } from '@uidotdev/usehooks'
 import InvoicePage from '../components/InvoicePage'
@@ -48,27 +48,29 @@ export const GET = async (req, res, next) => {
  *     "date": "2021-01-01",
  *    "dueDate": "2021-01-31",
  *   "from": {
- *     "name": "John Doe",
- *   "address": "123 Main St",
- *  "city": "Springfield",
- * "state": "IL",
- * "zip": "62701",
- * "country": "USA"
+ *      "company": "Company Name",
+ *      "ABN": "123456789",
+//  *     "name": "John Doe",
+//  *   "address": "123 Main St",
+//  *  "city": "Springfield",
+//  * "state": "QLD",
+//  * "postcode": "4000",
+//  * "country": "AUSTRALIA"
  * },
  * "to": {
  *  "name": "Jane Doe",
  * "address": "456 Elm St",
  * "city": "Springfield",
- * "state": "IL",
- * "zip": "62701",
- * "country": "USA"
+ * "state": "QLD",
+ * "postcode": "4000",
+ * "country": "AUSTRALIA"
  * },
  * "products": [
  * {
  * "name": "Product 1",
  * "description": "A product",
  * "quantity": 1,
- * "price": 100
+ * "unit_price": 100
  * }
  * ]
  * }
@@ -83,9 +85,108 @@ export const GET = async (req, res, next) => {
  */
 export const POST = async (req, res, next) => {
     // get data from request body
-    const data = req.body
+    const data = req.body.data;
     // do something with the data
     console.log(data)
+
+    // convert data to invoice
+    let today = new Date()
+    let defaultDueDate = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate())
+
+    /*
+        sample invoice data
+        {
+            "invoice": {
+                "id": 2433,
+                "date": "2024-01-01",
+                "due_date": "due on receipt",
+                "from": {
+                    "company": "Nebula Exploration Pty. Ltd.",
+                    "ABN": "12 345 678 901"
+                },
+                "to": {
+                    "name": "Darth Vader",
+                    "company": "Galactic Empire",
+                    "address": "Death Star, 1 Empire Way, Galaxy Far Far Away",
+                    "address2": "",
+                    "suburb": "Death Star",
+                    "state": "DS",
+                    "postcode": "00001"
+                },
+                "products": [
+                    {
+                        "description": "Death Star",
+                        "quantity": 1,
+                        "unit_price": 1000000000000
+                    },
+                    {
+                        "description": "Death Star Construction",
+                        "quantity": 1,
+                        "unit_price": 1000000000000
+                    }
+                ]
+            }
+        }             
+     */
+    let address2 = (data.invoice.to.suburb || "");
+    if (address2) {
+        address2 += ", ";
+    }
+    if (data.invoice.to.city) {
+        address2 += data.invoice.to.city + ", ";
+    }
+    if (data.invoice.to.state) {
+        address2 += data.invoice.to.state + " ";
+    }
+    if (data.invoice.to.postcode) {
+        address2 += data.invoice.to.postcode;
+    }
+
+    let titlePrefix = process.env.INVOICE_TITLE_PREFIX || "";
+
+    let productLines = data.invoice.products.map((product: any) => {
+        return {
+            // ...initialProductLine,
+            description: product.description,
+            quantity: product.quantity,
+            rate: product.unit_price
+        }
+    });
+
+    let invoice : Invoice = {
+        ...initialInvoice,
+
+        companyName: data.invoice.from.company,
+        name: "ABN: " + data.invoice.from.ABN,
+        clientName: data.invoice.to.name,
+        clientAddress: data.invoice.to.address,
+        clientAddress2: address2,
+        clientCountry: data.invoice.to.country,
+        invoiceTitle: titlePrefix + data.invoice.id,
+        productLines: productLines,
+    }
+
+    if (data.invoice.date) {
+        invoice.invoiceDate = data.invoice.date;
+    }
+    else {
+        invoice.invoiceDate = today.toISOString();
+    }
+
+    if (data.invoice.due_date) {
+        invoice.invoiceDueDate = data.invoice.due_date;
+    }
+    else {
+        invoice.invoiceDueDate = defaultDueDate.toISOString();
+    }
+
+    if (data.invoice.notes) {
+        invoice.notes += data.invoice.notes;
+    }
+
+    if (data.invoice.terms) {
+        invoice.term += data.invoice.terms;
+    }
 
     // send response
     console.log('POST /api/geninvoice')

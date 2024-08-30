@@ -1,0 +1,32 @@
+{
+    "invoice": {
+        "id": 2433,
+        "date": "2024-01-01",
+        "due_date": "due on receipt",
+        "from": {
+            "company": "Nebula Exploration Pty. Ltd.",
+            "ABN": "12 345 678 901"
+        },
+        "to": {
+            "name": "Darth Vader",
+            "company": "Galactic Empire",
+            "address": "Death Star, 1 Empire Way, Galaxy Far Far Away",
+            "address2": "",
+            "suburb": "Death Star",
+            "state": "DS",
+            "postcode": "00001"
+        },
+        "products": [
+            {
+                "description": "Death Star",
+                "quantity": 1,
+                "unit_price": 1000000000000
+            },
+            {
+                "description": "Death Star Construction",
+                "quantity": 1,
+                "unit_price": 1000000000000
+            }
+        ]
+    }
+}
