@@ -12,6 +12,8 @@ import ReactPDF from '@react-pdf/renderer';
 import invoiceTemplate from '../templates/invoice.json';
 
 const generateInvoice = (data: TInvoice) => {
+    let invoivePrefix = import.meta.env.VITE_INVOICE_TITLE_PREFIX || "";
+    let invoiceTitle = invoivePrefix + (data.invoiceTitle || "invoice");
 
     function formateDate(date: string | Date, keyName: string) {
         let dateObj: Date | undefined = undefined;
@@ -58,9 +60,13 @@ const generateInvoice = (data: TInvoice) => {
         return (<InvoicePage pdfMode={true} data={data} formatDate={formateDate} />)
     }
 
-    console.log('GET /api/geninvoice')
+    // console.log('GET /api/geninvoice')
+    let pdfFileName = `${path.resolve(import.meta.env.VITE_INVOICE_OUTPUT_PATH || "./", invoiceTitle)}.pdf`
+    console.log(`generating invoice at ${pdfFileName}`)
 
-    ReactPDF.render(<MyDocument />, `example.pdf`);
+    ReactPDF.render(<MyDocument />, `${pdfFileName}`);
+
+    return pdfFileName;
 }
 
 export const GET = async (req, res, next) => {
@@ -124,6 +130,9 @@ export const GET = async (req, res, next) => {
  * @param next 
  */
 export const POST = async (req, res, next) => {
+
+    let pdfFileName = '';
+
     // get data from request body
     try {
         const data = req.body;
@@ -232,7 +241,7 @@ export const POST = async (req, res, next) => {
         }
 
         // generate invoice
-        generateInvoice(invoice);
+        pdfFileName = generateInvoice(invoice);
     }
     catch (error) {
         console.error(error)
@@ -241,5 +250,5 @@ export const POST = async (req, res, next) => {
     }
 
     // send response
-    res.json({ message: `{"code": 200, "message": "an invoice has been generated at ${new Date()}"}` })
+    res.json({ message: `{"code": 200, "message": "an invoice has been generated at ${new Date()}: ${pdfFileName}"}` })
 }
