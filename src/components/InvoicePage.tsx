@@ -30,22 +30,41 @@ interface Props {
   data?: Invoice
   pdfMode?: boolean
   onChange?: (invoice: Invoice) => void
+  formatDate?: (date: string | Date, keyName: string) => string
 }
 
-const InvoicePage: FC<Props> = ({ data, pdfMode, onChange }) => {
+const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
   const [invoice, setInvoice] = useState<Invoice>(data ? { ...data } : { ...initialInvoice })
   const [subTotal, setSubTotal] = useState<number>()
   const [saleTax, setSaleTax] = useState<number>()
 
   const dateFormat = 'MMM dd, yyyy'
   const invoiceDate = invoice.invoiceDate !== '' ? new Date(invoice.invoiceDate) : new Date()
-  const invoiceDueDate =
-    invoice.invoiceDueDate !== ''
-      ? new Date(invoice.invoiceDueDate)
-      : new Date(invoiceDate.valueOf())
+  const invoiceDueDate = invoice.invoiceDueDate;
+  //   invoice.invoiceDueDate !== ''
+  //     ? new Date(invoice.invoiceDueDate)
+  //     : new Date(invoiceDate.valueOf())
 
-  if (invoice.invoiceDueDate === '') {
-    invoiceDueDate.setDate(invoiceDueDate.getDate() + 30)
+  // if (invoice.invoiceDueDate === '') {
+  //   invoiceDueDate.setDate(invoiceDueDate.getDate() + 30)
+  // }
+  
+  const formatit = (date: string | Date, keyName: string) => {
+    if (formatDate) {
+      return formatDate(date, keyName)
+    }
+
+    if (keyName === 'invoiceDueDate') {
+      if (date === '') {
+        date = new Date(invoiceDate.getDate())
+        date.setDate(date.getDate() + 30)
+      }
+      else {
+        date = new Date(date)
+      }
+    }
+
+    return format(new Date(date), dateFormat)
   }
 
   const handleChange = (name: keyof Invoice, value: string | number) => {
@@ -261,12 +280,12 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange }) => {
               </View>
               <View className="w-60" pdfMode={pdfMode}>
                 <EditableCalendarInput
-                  value={format(invoiceDate, dateFormat)}
+                  value={formatit(invoiceDate, 'invoiceDate')}
                   selected={invoiceDate}
                   onChange={(date) =>
                     handleChange(
                       'invoiceDate',
-                      date && !Array.isArray(date) ? format(date, dateFormat) : '',
+                      date && !Array.isArray(date) ? formatit(invoiceDate, 'invoiceDate') : '',
                     )
                   }
                   pdfMode={pdfMode}
@@ -284,12 +303,12 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange }) => {
               </View>
               <View className="w-60" pdfMode={pdfMode}>
                 <EditableCalendarInput
-                  value={format(invoiceDueDate, dateFormat)}
+                  value={formatit(invoiceDueDate, 'invoiceDueDate')}
                   selected={invoiceDueDate}
                   onChange={(date) =>
                     handleChange(
                       'invoiceDueDate',
-                      date ? (!Array.isArray(date) ? format(date, dateFormat) : '') : '',
+                      date ? (!Array.isArray(date) ? formatit(invoiceDueDate, 'invoiceDueDate') : '') : '',
                     )
                   }
                   pdfMode={pdfMode}

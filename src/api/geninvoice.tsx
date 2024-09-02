@@ -9,13 +9,53 @@ import path from 'path'
 
 import ReactPDF from '@react-pdf/renderer';
 
-import invoiceTemplate from '../templates/invoice.template';
+import invoiceTemplate from '../templates/invoice.json';
 
 const generateInvoice = (data: TInvoice) => {
 
+    function formateDate(date: string | Date, keyName: string) {
+        let dateObj: Date | undefined = undefined;
+        let formattedDate: string = '';
+
+        if (keyName === 'invoiceDueDate') {
+           let err: any = null;
+           try {
+                dateObj = new Date(date)
+            }
+            catch (error) {
+                err = error;
+            }
+        
+            // error or invalid date
+            if (err || (isNaN(dateObj!.getTime()))) {
+                // handle error or invalid date
+                // for example, set a default value
+                if (date)
+                    formattedDate = date.toString();
+                else {
+                    date = new Date();
+                    date.setDate(date.getDate() + 30);
+                }
+            }
+        }
+        else {
+            // nothing
+        }
+
+        if (!formattedDate) {
+            dateObj = new Date(date)
+            formattedDate = dateObj.toLocaleDateString('en-AU', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            })
+        }
+
+        return formattedDate
+    }
 
     function MyDocument () {
-        return (<InvoicePage pdfMode={true} data={data} />)
+        return (<InvoicePage pdfMode={true} data={data} formatDate={formateDate} />)
     }
 
     console.log('GET /api/geninvoice')
@@ -86,7 +126,7 @@ export const GET = async (req, res, next) => {
 export const POST = async (req, res, next) => {
     // get data from request body
     try {
-        const data = req.body.data;
+        const data = req.body;
         // do something with the data
         console.log(data)
 
@@ -170,14 +210,16 @@ export const POST = async (req, res, next) => {
         if (data.invoice.date) {
             invoice.invoiceDate = data.invoice.date;
         }
-        else {
+        else 
+        {
             invoice.invoiceDate = today.toISOString();
         }
 
         if (data.invoice.due_date) {
             invoice.invoiceDueDate = data.invoice.due_date;
         }
-        else {
+        else 
+        {
             invoice.invoiceDueDate = defaultDueDate.toISOString();
         }
 
