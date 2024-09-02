@@ -9,7 +9,7 @@ import path from 'path'
 
 import ReactPDF from '@react-pdf/renderer';
 
-import invoiceTemplate from '../templates/invoice.template'
+import invoiceTemplate from '../templates/invoice.template';
 
 const generateInvoice = (data: TInvoice) => {
 
@@ -85,109 +85,119 @@ export const GET = async (req, res, next) => {
  */
 export const POST = async (req, res, next) => {
     // get data from request body
-    const data = req.body.data;
-    // do something with the data
-    console.log(data)
+    try {
+        const data = req.body.data;
+        // do something with the data
+        console.log(data)
 
-    // convert data to invoice
-    let today = new Date()
-    let defaultDueDate = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate())
+        // convert data to invoice
+        let today = new Date()
+        let defaultDueDate = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate())
 
-    /*
-        sample invoice data
-        {
-            "invoice": {
-                "id": 2433,
-                "date": "2024-01-01",
-                "due_date": "due on receipt",
-                "from": {
-                    "company": "Nebula Exploration Pty. Ltd.",
-                    "ABN": "12 345 678 901"
-                },
-                "to": {
-                    "name": "Darth Vader",
-                    "company": "Galactic Empire",
-                    "address": "Death Star, 1 Empire Way, Galaxy Far Far Away",
-                    "address2": "",
-                    "suburb": "Death Star",
-                    "state": "DS",
-                    "postcode": "00001"
-                },
-                "products": [
-                    {
-                        "description": "Death Star",
-                        "quantity": 1,
-                        "unit_price": 1000000000000
+        /*
+            sample invoice data
+            {
+                "invoice": {
+                    "id": 2433,
+                    "date": "2024-01-01",
+                    "due_date": "due on receipt",
+                    "from": {
+                        "company": "Nebula Exploration Pty. Ltd.",
+                        "ABN": "12 345 678 901"
                     },
-                    {
-                        "description": "Death Star Construction",
-                        "quantity": 1,
-                        "unit_price": 1000000000000
-                    }
-                ]
-            }
-        }             
-     */
-    let address2 = (data.invoice.to.suburb || "");
-    if (address2) {
-        address2 += ", ";
-    }
-    if (data.invoice.to.city) {
-        address2 += data.invoice.to.city + ", ";
-    }
-    if (data.invoice.to.state) {
-        address2 += data.invoice.to.state + " ";
-    }
-    if (data.invoice.to.postcode) {
-        address2 += data.invoice.to.postcode;
-    }
-
-    let titlePrefix = process.env.INVOICE_TITLE_PREFIX || "";
-
-    let productLines = data.invoice.products.map((product: any) => {
-        return {
-            // ...initialProductLine,
-            description: product.description,
-            quantity: product.quantity,
-            rate: product.unit_price
+                    "to": {
+                        "name": "Darth Vader",
+                        "company": "Galactic Empire",
+                        "address": "Death Star, 1 Empire Way, Galaxy Far Far Away",
+                        "address2": "",
+                        "suburb": "Death Star",
+                        "state": "DS",
+                        "postcode": "00001"
+                    },
+                    "products": [
+                        {
+                            "description": "Death Star",
+                            "quantity": 1,
+                            "unit_price": 1000000000000
+                        },
+                        {
+                            "description": "Death Star Construction",
+                            "quantity": 1,
+                            "unit_price": 1000000000000
+                        }
+                    ]
+                }
+            }             
+        */
+        let address2 = (data.invoice.to.suburb || "");
+        if (address2) {
+            address2 += ", ";
         }
-    });
+        if (data.invoice.to.city) {
+            address2 += data.invoice.to.city + ", ";
+        }
+        if (data.invoice.to.state) {
+            address2 += data.invoice.to.state + " ";
+        }
+        if (data.invoice.to.postcode) {
+            address2 += data.invoice.to.postcode;
+        }
 
-    let invoice : Invoice = {
-        ...initialInvoice,
+        let titlePrefix = process.env.INVOICE_TITLE_PREFIX || "";
 
-        companyName: data.invoice.from.company,
-        name: "ABN: " + data.invoice.from.ABN,
-        clientName: data.invoice.to.name,
-        clientAddress: data.invoice.to.address,
-        clientAddress2: address2,
-        clientCountry: data.invoice.to.country,
-        invoiceTitle: titlePrefix + data.invoice.id,
-        productLines: productLines,
-    }
+        let productLines = data.invoice.products.map((product: any) => {
+            return {
+                // ...initialProductLine,
+                description: product.description,
+                quantity: product.quantity,
+                rate: product.unit_price
+            }
+        });
 
-    if (data.invoice.date) {
-        invoice.invoiceDate = data.invoice.date;
-    }
-    else {
-        invoice.invoiceDate = today.toISOString();
-    }
+        let invoice : Invoice = {
+            ...initialInvoice,
 
-    if (data.invoice.due_date) {
-        invoice.invoiceDueDate = data.invoice.due_date;
-    }
-    else {
-        invoice.invoiceDueDate = defaultDueDate.toISOString();
-    }
+            companyName: data.invoice.from.company,
+            name: "ABN: " + data.invoice.from.ABN,
+            clientName: data.invoice.to.name,
+            clientAddress: data.invoice.to.address,
+            clientAddress2: address2,
+            clientCountry: data.invoice.to.country,
+            invoiceTitle: titlePrefix + data.invoice.id,
+            productLines: productLines,
+        }
 
-    if (data.invoice.notes) {
-        invoice.notes += data.invoice.notes;
-    }
+        if (data.invoice.date) {
+            invoice.invoiceDate = data.invoice.date;
+        }
+        else {
+            invoice.invoiceDate = today.toISOString();
+        }
 
-    if (data.invoice.terms) {
-        invoice.term += data.invoice.terms;
+        if (data.invoice.due_date) {
+            invoice.invoiceDueDate = data.invoice.due_date;
+        }
+        else {
+            invoice.invoiceDueDate = defaultDueDate.toISOString();
+        }
+
+        if (data.invoice.notes) {
+            invoice.notes += data.invoice.notes;
+        }
+
+        if (data.invoice.terms) {
+            invoice.term += data.invoice.terms;
+        }
+
+        // generate invoice
+        generateInvoice(invoice);
+    }
+    catch (error) {
+        console.error(error)
+        res.json({ message: `{"code": 500, "message": "an error occurred while generating the invoice: ${error.message}"}` })
+        return;
     }
 
     // send response
-    console.log('POST /api/geninvoice')
+    res.json({ message: `{"code": 200, "message": "an invoice has been generated at ${new Date()}"}` })
 }
