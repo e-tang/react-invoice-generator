@@ -20,13 +20,14 @@
             {
                 "description": "Death Star",
                 "quantity": 1,
-                "unit_price": 1000000000000
+                "unit_price": 1000000000
             },
             {
                 "description": "Death Star Construction",
                 "quantity": 1,
-                "unit_price": 1000000000000
+                "unit_price": 1000000000
             }
-        ]
+        ],
+        "tax": 200000000
     }
 }

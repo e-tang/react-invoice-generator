@@ -9,11 +9,10 @@ import path from 'path'
 
 import ReactPDF from '@react-pdf/renderer';
 
-import invoiceTemplate from '../templates/invoice.json';
+import * as invoiceTemplate from '../templates';
 
 const generateInvoice = (data: TInvoice) => {
-    let invoivePrefix = import.meta.env.VITE_INVOICE_TITLE_PREFIX || "";
-    let invoiceTitle = invoivePrefix + (data.invoiceTitle || "invoice");
+    let invoiceTitle = data.invoiceTitle || "invoice";
 
     function formateDate(date: string | Date, keyName: string) {
         let dateObj: Date | undefined = undefined;
@@ -70,9 +69,10 @@ const generateInvoice = (data: TInvoice) => {
 }
 
 export const GET = async (req, res, next) => {
-    let data = null
+    let data = null;
+    let template = invoiceTemplate.default;
     data = {
-        ...invoiceTemplate,
+        ...template,
         // products: [initialProductLine]
     }
     // const debounced = useDebounce(data, 500)
@@ -192,7 +192,7 @@ export const POST = async (req, res, next) => {
             address2 += data.invoice.to.postcode;
         }
 
-        let titlePrefix = process.env.INVOICE_TITLE_PREFIX || "";
+        let titlePrefix = import.meta.env.VITE_INVOICE_TITLE_PREFIX || "";
 
         let productLines = data.invoice.products.map((product: any) => {
             return {
@@ -203,8 +203,10 @@ export const POST = async (req, res, next) => {
             }
         });
 
+        let template = invoiceTemplate.default;
+
         let invoice : Invoice = {
-            ...initialInvoice,
+            ...template,
 
             companyName: data.invoice.from.company,
             name: "ABN: " + data.invoice.from.ABN,
@@ -239,6 +241,9 @@ export const POST = async (req, res, next) => {
         if (data.invoice.terms) {
             invoice.term += data.invoice.terms;
         }
+
+        if (data.invoice.tax)
+            invoice.saleTax = data.invoice.tax;
 
         // generate invoice
         pdfFileName = generateInvoice(invoice);

@@ -1,5 +1,5 @@
 {
-    "logo": "/logo.png",
+    "logo": "http://localhost:5173/logo.png",
     "logoWidth": 100,
     "title": "INVOICE",
     "companyName": "",
@@ -20,7 +20,7 @@
     "invoiceDueDate": "",
     "productLineDescription": "Item Description",
     "productLineQuantity": "Qty",
-    "productLineQuantityRate": "Price",
+    "productLineQuantityRate": "Unit Price",
     "productLineQuantityAmount": "Amount",
     "productLines": [{
         "description": "IT Service Fixed Fee",
@@ -29,7 +29,7 @@
     }],
     "subTotalLabel": "Sub Total",
     "taxLabel": "GST ",
-    "totalLabel": "TOTAL",
+    "totalLabel": "TOTAL*",
     "currency": "$",
     "notesLabel": "Notes",
     "notes": "It was great doing business with you.",

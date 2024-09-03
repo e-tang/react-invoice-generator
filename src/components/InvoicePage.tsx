@@ -35,8 +35,6 @@ interface Props {
 
 const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
   const [invoice, setInvoice] = useState<Invoice>(data ? { ...data } : { ...initialInvoice })
-  const [subTotal, setSubTotal] = useState<number>()
-  const [saleTax, setSaleTax] = useState<number>()
 
   const dateFormat = 'MMM dd, yyyy'
   const invoiceDate = invoice.invoiceDate !== '' ? new Date(invoice.invoiceDate) : new Date()
@@ -130,7 +128,7 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
     return amount.toFixed(2)
   }
 
-  useEffect(() => {
+  const calculateSubTotal = () => {
     let subTotal = 0
 
     invoice.productLines.forEach((productLine) => {
@@ -141,15 +139,32 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
       subTotal += amount
     })
 
+    return subTotal
+  }
+
+  const [subTotal, setSubTotal] = useState<number>(calculateSubTotal())
+  const [saleTax, setSaleTax] = useState<number>(invoice.saleTax)
+
+  useEffect(() => {
+    let subTotal = calculateSubTotal()
+
     setSubTotal(subTotal)
   }, [invoice.productLines])
 
   useEffect(() => {
     const match = invoice.taxLabel.match(/(\d+)%/)
-    const taxRate = match ? parseFloat(match[1]) : 0
-    const saleTax = subTotal ? (subTotal * taxRate) / 100 : 0
 
-    setSaleTax(saleTax)
+    if (match) {
+      const taxRate = parseFloat(match[1])
+
+      /**
+       * The actual tax calculation can be complex and depends on the country and the type of product.
+       * 
+       */
+      const saleTax = subTotal ? (subTotal * taxRate) / 100 : 0
+
+      setSaleTax(saleTax)
+    }
   }, [subTotal, invoice.taxLabel])
 
   useEffect(() => {
@@ -182,24 +197,28 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
               pdfMode={pdfMode}
             />
             <EditableInput
+              className="text-small"
               placeholder="Your Name"
               value={invoice.name}
               onChange={(value) => handleChange('name', value)}
               pdfMode={pdfMode}
             />
             <EditableInput
+              className="text-small"
               placeholder="Company's Address"
               value={invoice.companyAddress}
               onChange={(value) => handleChange('companyAddress', value)}
               pdfMode={pdfMode}
             />
             <EditableInput
+            className="text-small"
               placeholder="City, State Zip"
               value={invoice.companyAddress2}
               onChange={(value) => handleChange('companyAddress2', value)}
               pdfMode={pdfMode}
             />
             <EditableSelect
+              className="text-small"
               options={countryList}
               value={invoice.companyCountry}
               onChange={(value) => handleChange('companyCountry', value)}
@@ -217,8 +236,8 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
           </View>
         </View>
 
-        <View className="flex mt-40" pdfMode={pdfMode}>
-          <View className="w-55" pdfMode={pdfMode}>
+        <View className="flex mt-20" pdfMode={pdfMode}>
+          <View className="w-60" pdfMode={pdfMode}>
             <EditableInput
               className="bold dark mb-5"
               value={invoice.billTo}
@@ -226,31 +245,35 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
               pdfMode={pdfMode}
             />
             <EditableInput
+            className="text-small"
               placeholder="Your Client's Name"
               value={invoice.clientName}
               onChange={(value) => handleChange('clientName', value)}
               pdfMode={pdfMode}
             />
             <EditableInput
+            className="text-small"
               placeholder="Client's Address"
               value={invoice.clientAddress}
               onChange={(value) => handleChange('clientAddress', value)}
               pdfMode={pdfMode}
             />
             <EditableInput
+            className="text-small"
               placeholder="City, State Zip"
               value={invoice.clientAddress2}
               onChange={(value) => handleChange('clientAddress2', value)}
               pdfMode={pdfMode}
             />
             <EditableSelect
+            className="text-small"
               options={countryList}
               value={invoice.clientCountry}
               onChange={(value) => handleChange('clientCountry', value)}
               pdfMode={pdfMode}
             />
           </View>
-          <View className="w-45" pdfMode={pdfMode}>
+          <View className="w-40" pdfMode={pdfMode}>
             <View className="flex mb-5" pdfMode={pdfMode}>
               <View className="w-40" pdfMode={pdfMode}>
                 <EditableInput
@@ -468,7 +491,7 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
           </View>
         </View>
 
-        <View className="mt-20" pdfMode={pdfMode}>
+        <View className="mt-10" pdfMode={pdfMode}>
           <EditableInput
             className="bold w-100"
             value={invoice.notesLabel}
@@ -476,14 +499,14 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
             pdfMode={pdfMode}
           />
           <EditableTextarea
-            className="w-100"
+            className="w-100 text-small"
             rows={2}
             value={invoice.notes}
             onChange={(value) => handleChange('notes', value)}
             pdfMode={pdfMode}
           />
         </View>
-        <View className="mt-20" pdfMode={pdfMode}>
+        <View className="mt-10" pdfMode={pdfMode}>
           <EditableInput
             className="bold w-100"
             value={invoice.termLabel}
@@ -491,7 +514,7 @@ const InvoicePage: FC<Props> = ({ data, pdfMode, onChange, formatDate }) => {
             pdfMode={pdfMode}
           />
           <EditableTextarea
-            className="w-100"
+            className="w-100 text-small"
             rows={2}
             value={invoice.term}
             onChange={(value) => handleChange('term', value)}
